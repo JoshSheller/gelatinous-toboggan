@@ -8,6 +8,7 @@ import { postQuilt } from '../actions/index';
 const {
   Component,
   Dimensions,
+  PropTypes,
   StyleSheet,
   Text,
   View,
@@ -24,35 +25,18 @@ class ShowCamera extends Component {
     // refactor into redux?
     this.state = {
       isCapturing: false,
-    }
+    };
   }
 
   // testing video posting, should be moved into action creator in future
   // also, add spinners,
   // add catches
-
-  _onStartCapture() {
-    console.log('start capturing');
-    this.setState({
-      isCapturing: true,
-    });
-    this.camera.capture().then((file) => {
-      console.log('reading file')
-      return RNFS.readFile(file, 'base64');
-    }).then((data) => {
-      console.log('sending data');
-      this.props.postQuilt(Object.assign(this.props.currentQuilt, {
-        vid: data,
-      }));
-    });
-  }
-
-  _onStopCapture() {
-    console.log('stop capturing');
-    this.setState({
-      isCapturing: false,
-    });
-    this.camera.stopCapture()
+  onCapturePress() {
+    if (!this.state.isCapturing) {
+      this._onStartCapture();
+    } else {
+      this._onStopCapture();
+    }
   }
 
 
@@ -62,6 +46,44 @@ class ShowCamera extends Component {
     } else {
       this._onStopCapture();
     }
+  }
+
+  _onStartCapture() {
+    console.log('start capturing');
+    this.setState({
+      isCapturing: true,
+    });
+    this.camera.capture().then((file) => {
+      console.log('reading file');
+      return RNFS.readFile(file, 'base64');
+    }).then((data) => {
+      console.log('sending data');
+
+      this.props.postQuilt(Object.assign(this.props.currentQuilt, {
+        vid: data,
+      }));
+
+      // let options = {
+      //   username: 'tasiov',
+      //   friends: ['josh', 'griffin'],
+      //   quilt: {
+      //     filename: 'quilt43',
+      //     title: 'quiltTitle',
+      //     theme: 'quiltTheme',
+      //     video: data,
+      //   },
+      // }
+      //
+      // this.props.postQuilt(options);
+    });
+  }
+
+  _onStopCapture() {
+    console.log('stop capturing');
+    this.setState({
+      isCapturing: false,
+    });
+    this.camera.stopCapture();
   }
 
   cameraRef(cam) {
@@ -88,6 +110,11 @@ class ShowCamera extends Component {
   }
 }
 
+ShowCamera.propTypes = {
+  postQuilt: PropTypes.func,
+  currentQuilt: PropTypes.object,
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -112,7 +139,7 @@ const styles = StyleSheet.create({
 // get the state of the current quilt
 // which will be passed with the video
 // to action creator to post data
-function mapStateToProps (state) {
+function mapStateToProps(state) {
   const currentQuilt = state.get('currentQuilt');
   return {
     currentQuilt: currentQuilt.toObject(),
@@ -120,7 +147,7 @@ function mapStateToProps (state) {
 }
 
 // dispatch postQuilt with previous current quilt state plus video data
-function mapDispatchToProps (dispatch) {
+function mapDispatchToProps(dispatch) {
   return {
     postQuilt: (data) => {
       dispatch(postQuilt(data));
