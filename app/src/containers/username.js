@@ -42,7 +42,7 @@ class Username extends Component {
         <View style={login.containerBody}>
           <Text>Select a Username</Text>
           <UsernameInput
-            value={this.state.phoneNumber}
+            value={this.state.username}
             onChangeText={this.onType}
           />
           <CustomButton onPress={this.onEnter}>
